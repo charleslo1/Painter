@@ -21,28 +21,43 @@ export default class Painter {
   }
 
   _background() {
-    this.ctx.save();
     const {
       width,
       height,
     } = this.style;
-    const bg = this.data.background;
-    this.ctx.translate(width / 2, height / 2);
-
-    this._doClip(this.data.borderRadius, width, height);
-    if (!bg) {
-      // 如果未设置背景，则默认使用白色
-      this.ctx.setFillStyle('#fff');
-      this.ctx.fillRect(-(width / 2), -(height / 2), width, height);
-    } else if (bg.startsWith('#') || bg.startsWith('rgba') || bg.toLowerCase() === 'transparent') {
-      // 背景填充颜色
-      this.ctx.setFillStyle(bg);
-      this.ctx.fillRect(-(width / 2), -(height / 2), width, height);
-    } else {
+    const bg = this.data.background || '#fff';
+    if (bg.indexOf('://') >= 0) {
       // 背景填充图片
-      this.ctx.drawImage(bg, -(width / 2), -(height / 2), width, height);
+      this.data.views.unshift({
+        type: 'image',
+        url: bg,
+        sWidth: this.data.sWidth,
+        sHeight: this.data.sHeight,
+        css: {
+          top: '0rpx',
+          right: '0rpx',
+          bottom: '0rpx',
+          left: '0rpx',
+          width: this.data.width,
+          height: this.data.height,
+          mode: 'scaleToFill'
+        }
+      })
+    } else {
+      // 背景填充颜色
+      this.data.views.unshift({
+        type: 'rect',
+        css: {
+          top: '0rpx',
+          right: '0rpx',
+          bottom: '0rpx',
+          left: '0rpx',
+          width: this.data.width,
+          height: this.data.height,
+          color: bg
+        }
+      })
     }
-    this.ctx.restore();
   }
 
   _drawAbsolute(view) {
@@ -217,6 +232,7 @@ export default class Painter {
   }
 
   _drawAbsImage(view) {
+    console.info('view: ', view)
     if (!view.url) {
       return;
     }
